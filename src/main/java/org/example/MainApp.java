@@ -15,6 +15,8 @@ public class MainApp extends Application {
     private VBox fieldsContainer;
     private TextArea logArea;
 
+    private VBox checkBoxContainer = null;
+
     private final Map<Integer, TextField> fields = new HashMap<>();
     private final Map<Integer, CheckBox> checkBoxes = new HashMap<>();
 
@@ -29,8 +31,6 @@ public class MainApp extends Application {
         logArea.setPrefHeight(150);
 
         fieldsContainer = new VBox(5);
-
-        // ✅ padding внутри скролла
         fieldsContainer.setPadding(new Insets(5, 10, 5, 10));
 
         ScrollPane scrollPane = new ScrollPane(fieldsContainer);
@@ -79,8 +79,6 @@ public class MainApp extends Application {
         });
 
         HBox row = new HBox(10, label, field);
-
-        // ✅ отступы между строками
         VBox.setMargin(row, new Insets(5));
 
         fields.put(number, field);
@@ -99,6 +97,9 @@ public class MainApp extends Application {
         if (withLog) {
             log("Добавлено поле " + number);
         }
+
+        // 🔥 если окно флажков открыто — добавляем туда чекбокс
+        addCheckBox(number);
     }
 
     // =========================
@@ -116,9 +117,51 @@ public class MainApp extends Application {
 
         fieldsContainer.getChildren().remove(row);
         fields.remove(number);
-        checkBoxes.remove(number);
+
+        // удаляем чекбокс если есть
+        if (checkBoxes.containsKey(number)) {
+            CheckBox cb = checkBoxes.get(number);
+            if (checkBoxContainer != null) {
+                checkBoxContainer.getChildren().remove(cb);
+            }
+            checkBoxes.remove(number);
+        }
 
         log("Удалено поле " + number);
+    }
+
+    // =========================
+    // ДОБАВЛЕНИЕ ЧЕКБОКСА
+    // =========================
+    private void addCheckBox(int number) {
+        if (checkBoxContainer == null) return;
+
+        TextField field = fields.get(number);
+
+        CheckBox cb = new CheckBox(field.getText());
+
+        cb.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            field.setFont(newVal
+                    ? Font.font("System", javafx.scene.text.FontWeight.BOLD, 12)
+                    : Font.getDefault());
+
+            log("Флажок " + number + ": " + newVal);
+        });
+
+        VBox.setMargin(cb, new Insets(5));
+
+        checkBoxes.put(number, cb);
+
+        int insertIndex = 0;
+        List<Integer> sortedKeys = new ArrayList<>(checkBoxes.keySet());
+        Collections.sort(sortedKeys);
+
+        for (Integer key : sortedKeys) {
+            if (key == number) break;
+            insertIndex++;
+        }
+
+        checkBoxContainer.getChildren().add(insertIndex, cb);
     }
 
     private Integer parsePositiveInt(String text) {
@@ -168,8 +211,8 @@ public class MainApp extends Application {
     private void openCheckBoxWindow() {
         Stage stage = new Stage();
 
-        VBox content = new VBox(5);
-        content.setPadding(new Insets(5, 10, 5, 10));
+        checkBoxContainer = new VBox(5);
+        checkBoxContainer.setPadding(new Insets(5, 10, 5, 10));
 
         checkBoxes.clear();
 
@@ -177,30 +220,18 @@ public class MainApp extends Application {
         Collections.sort(sortedKeys);
 
         for (Integer number : sortedKeys) {
-            TextField field = fields.get(number);
-
-            CheckBox cb = new CheckBox(field.getText());
-
-            cb.selectedProperty().addListener((obs, oldVal, newVal) -> {
-                field.setFont(newVal
-                        ? Font.font("System", javafx.scene.text.FontWeight.BOLD, 12)
-                        : Font.getDefault());
-
-                log("Флажок " + number + ": " + newVal);
-            });
-
-            VBox.setMargin(cb, new Insets(5));
-
-            checkBoxes.put(number, cb);
-            content.getChildren().add(cb);
+            addCheckBox(number);
         }
 
-        // ✅ скролл
-        ScrollPane scrollPane = new ScrollPane(content);
+        ScrollPane scrollPane = new ScrollPane(checkBoxContainer);
         scrollPane.setFitToWidth(true);
 
         stage.setScene(new Scene(scrollPane, 300, 300));
         stage.setTitle("Флажки");
+
+        // очищаем ссылку при закрытии
+        stage.setOnCloseRequest(e -> checkBoxContainer = null);
+
         stage.show();
     }
 
