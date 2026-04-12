@@ -53,14 +53,12 @@ public class MainApp extends Application {
 
         root.getChildren().addAll(buttons, scrollPane, logArea);
 
-        primaryStage.setScene(new Scene(root, 400, 500));
-        primaryStage.setTitle("Главное окно");
+        primaryStage.setScene(new Scene(root, 600, 500));
+        primaryStage.setTitle("Синхронизация");
         primaryStage.show();
     }
 
-    // =========================
     // СОЗДАНИЕ ПОЛЯ
-    // =========================
     private void createField(int number, boolean withLog) {
 
         if (fields.containsKey(number)) {
@@ -98,13 +96,11 @@ public class MainApp extends Application {
             log("Добавлено поле " + number);
         }
 
-        // 🔥 если окно флажков открыто — добавляем туда чекбокс
+        // если окно флажков открыто — добавляем туда чекбокс
         addCheckBox(number);
     }
 
-    // =========================
     // УДАЛЕНИЕ ПОЛЯ
-    // =========================
     private void deleteField(int number) {
 
         if (!fields.containsKey(number)) {
@@ -130,9 +126,7 @@ public class MainApp extends Application {
         log("Удалено поле " + number);
     }
 
-    // =========================
     // ДОБАВЛЕНИЕ ЧЕКБОКСА
-    // =========================
     private void addCheckBox(int number) {
         if (checkBoxContainer == null) return;
 
@@ -173,9 +167,7 @@ public class MainApp extends Application {
         }
     }
 
-    // =========================
-    // ОКНО МАСШТАБА
-    // =========================
+    // ОКНО МАСШТАБИРОВАНИЯ
     private void openScaleWindow(Stage mainStage) {
         Stage stage = new Stage();
 
@@ -205,9 +197,7 @@ public class MainApp extends Application {
         stage.show();
     }
 
-    // =========================
     // ОКНО ФЛАЖКОВ
-    // =========================
     private void openCheckBoxWindow() {
         Stage stage = new Stage();
 
@@ -235,9 +225,7 @@ public class MainApp extends Application {
         stage.show();
     }
 
-    // =========================
     // ОКНО УПРАВЛЕНИЯ
-    // =========================
     private void openManageWindow() {
         Stage stage = new Stage();
 
