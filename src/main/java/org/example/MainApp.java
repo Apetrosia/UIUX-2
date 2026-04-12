@@ -25,8 +25,15 @@ public class MainApp extends Application {
         VBox root = new VBox(10);
         root.setPadding(new Insets(10));
 
+        // ✅ СНАЧАЛА создаём лог
+        logArea = new TextArea();
+        logArea.setEditable(false);
+        logArea.setPrefHeight(150);
+
+        // Контейнер для полей
         fieldsContainer = new VBox(5);
 
+        // Теперь можно безопасно вызывать addFieldWithNumber (там есть log)
         for (int i = 1; i <= 6; i++) {
             addFieldWithNumber(i);
         }
@@ -40,10 +47,6 @@ public class MainApp extends Application {
         manageBtn.setOnAction(e -> openManageWindow());
 
         HBox buttons = new HBox(10, scaleBtn, checkBoxBtn, manageBtn);
-
-        logArea = new TextArea();
-        logArea.setEditable(false);
-        logArea.setPrefHeight(150);
 
         root.getChildren().addAll(buttons, fieldsContainer, logArea);
 
@@ -79,6 +82,8 @@ public class MainApp extends Application {
         fields.add(field);
         fieldMap.put(number, box);
         fieldsContainer.getChildren().add(box);
+
+        log("Добавлено поле " + number);
     }
 
     // =========================
