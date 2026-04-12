@@ -8,8 +8,7 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class MainApp extends Application {
 
@@ -18,6 +17,7 @@ public class MainApp extends Application {
 
     private final List<TextField> fields = new ArrayList<>();
     private final List<CheckBox> checkBoxes = new ArrayList<>();
+    private final Map<Integer, HBox> fieldMap = new HashMap<>();
 
     @Override
     public void start(Stage primaryStage) {
@@ -25,15 +25,12 @@ public class MainApp extends Application {
         VBox root = new VBox(10);
         root.setPadding(new Insets(10));
 
-        // Контейнер для полей
         fieldsContainer = new VBox(5);
 
-        // Создаём 6 полей
         for (int i = 1; i <= 6; i++) {
-            addField();
+            addFieldWithNumber(i);
         }
 
-        // Кнопки
         Button scaleBtn = new Button("Масштаб");
         Button checkBoxBtn = new Button("Флажки");
         Button manageBtn = new Button("Управление полями");
@@ -44,7 +41,6 @@ public class MainApp extends Application {
 
         HBox buttons = new HBox(10, scaleBtn, checkBoxBtn, manageBtn);
 
-        // Лог
         logArea = new TextArea();
         logArea.setEditable(false);
         logArea.setPrefHeight(150);
@@ -57,50 +53,64 @@ public class MainApp extends Application {
     }
 
     // =========================
-    // СОЗДАНИЕ ПОЛЯ
+    // ДОБАВЛЕНИЕ ПОЛЯ ПО НОМЕРУ
     // =========================
-    private int addField() {
-        HBox box = new HBox(10);
+    private void addFieldWithNumber(int number) {
 
-        int number = 1;
-        while (true) {
-            final int current = number;
-
-            boolean exists = fields.stream().anyMatch(x -> {
-                Label label = (Label) x.getParent().getChildrenUnmodifiable()
-                        .stream()
-                        .filter(s -> s instanceof Label)
-                        .findFirst()
-                        .orElse(null);
-
-                if (label == null) return false;
-
-                return Integer.parseInt(label.getText()) == current;
-            });
-
-            if (!exists) break;
-
-            number++;
+        if (fieldMap.containsKey(number)) {
+            showError("Поле с таким номером уже существует");
+            return;
         }
 
+        HBox box = new HBox(10);
         Label label = new Label(String.valueOf(number));
         TextField field = new TextField(String.valueOf(number));
 
-        int index = fields.size();
-
         field.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (index < checkBoxes.size()) {
+            int index = fields.indexOf(field);
+            if (index >= 0 && index < checkBoxes.size()) {
                 checkBoxes.get(index).setText(newVal);
             }
-            log("Изменено поле " + (index + 1) + ": " + newVal);
+            log("Изменено поле " + number + ": " + newVal);
         });
 
-        fields.add(field);
-
         box.getChildren().addAll(label, field);
-        fieldsContainer.getChildren().add(box);
 
-        return number;
+        fields.add(field);
+        fieldMap.put(number, box);
+        fieldsContainer.getChildren().add(box);
+    }
+
+    // =========================
+    // УДАЛЕНИЕ ПОЛЯ
+    // =========================
+    private void removeField(int number) {
+        if (!fieldMap.containsKey(number)) {
+            showError("Поля с таким номером не существует");
+            return;
+        }
+
+        HBox box = fieldMap.get(number);
+        TextField field = (TextField) box.getChildren().get(1);
+
+        fields.remove(field);
+        fieldsContainer.getChildren().remove(box);
+        fieldMap.remove(number);
+
+        log("Удалено поле " + number);
+    }
+
+    // =========================
+    // ВАЛИДАЦИЯ ЧИСЛА
+    // =========================
+    private Integer parsePositiveInt(String text) {
+        try {
+            int val = Integer.parseInt(text);
+            if (val <= 0) return null;
+            return val;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // =========================
@@ -118,8 +128,7 @@ public class MainApp extends Application {
         apply.setOnAction(e -> {
             try {
                 double scale = Double.parseDouble(input.getText());
-                if (scale <= 0)
-                {
+                if (scale <= 0) {
                     log("Некорректное число: " + scale);
                     return;
                 }
@@ -148,18 +157,17 @@ public class MainApp extends Application {
         root.setPadding(new Insets(10));
 
         checkBoxes.clear();
-        root.getChildren().clear();
 
-        for (int i = 0; i < fields.size(); i++) {
-            int index = i;
+        for (TextField field : fields) {
+            int index = fields.indexOf(field);
 
-            CheckBox cb = new CheckBox(fields.get(i).getText());
+            CheckBox cb = new CheckBox(field.getText());
 
             cb.selectedProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal) {
-                    fields.get(index).setFont(Font.font("System", javafx.scene.text.FontWeight.BOLD, 12));
+                    field.setFont(Font.font("System", javafx.scene.text.FontWeight.BOLD, 12));
                 } else {
-                    fields.get(index).setFont(Font.getDefault());
+                    field.setFont(Font.getDefault());
                 }
                 log("Флажок " + (index + 1) + ": " + newVal);
             });
@@ -188,40 +196,22 @@ public class MainApp extends Application {
         Button addBtn = new Button("Добавить");
         Button removeBtn = new Button("Удалить");
 
-        addBtn.setOnAction(e -> log("Добавлено поле " + addField()));
+        addBtn.setOnAction(e -> {
+            Integer number = parsePositiveInt(input.getText());
+            if (number == null) {
+                showError("Введите положительное целое число");
+                return;
+            }
+            addFieldWithNumber(number);
+        });
 
         removeBtn.setOnAction(e -> {
-            try {
-                final int number = Integer.parseInt(input.getText());
-
-                int index = -1;
-                for (int i = 0; i < fields.size(); ++i)
-                {
-                    Label label = (Label) (fields.get(i).getParent().getChildrenUnmodifiable()
-                            .stream()
-                            .filter(s -> s instanceof Label)
-                            .findFirst()
-                            .orElse(null));
-
-                    if (label != null && Integer.parseInt(label.getText()) == number)
-                    {
-                        index = i;
-                        break;
-                    }
-                }
-
-                if (index == -1) {
-                    throw new Exception();
-                }
-
-                fields.remove(index);
-                fieldsContainer.getChildren().remove(index);
-
-                log("Удалено поле " + (number));
-
-            } catch (Exception ex) {
-                showError("Некорректный номер");
+            Integer number = parsePositiveInt(input.getText());
+            if (number == null) {
+                showError("Введите положительное целое число");
+                return;
             }
+            removeField(number);
         });
 
         root.getChildren().addAll(input, addBtn, removeBtn);
