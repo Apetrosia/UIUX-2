@@ -1,6 +1,7 @@
 package org.example;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -11,10 +12,10 @@ import javafx.stage.Stage;
 import java.util.*;
 
 public class MainApp extends Application {
+    private Stage primaryStage;
 
     private VBox fieldsContainer;
     private TextArea logArea;
-
     private VBox checkBoxContainer = null;
 
     private final Map<Integer, TextField> fields = new HashMap<>();
@@ -27,6 +28,7 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
 
         VBox root = new VBox(10);
         root.setPadding(new Insets(10));
@@ -61,6 +63,8 @@ public class MainApp extends Application {
         primaryStage.setScene(new Scene(root, 600, 500));
         primaryStage.setTitle("Синхронизация");
         primaryStage.show();
+
+        primaryStage.setOnCloseRequest(e -> Platform.exit());
     }
 
     // СОЗДАНИЕ ПОЛЯ
@@ -86,7 +90,7 @@ public class MainApp extends Application {
 
         fields.put(number, field);
 
-            int insertIndex = 0;
+        int insertIndex = 0;
         List<Integer> sortedKeys = new ArrayList<>(fields.keySet());
         Collections.sort(sortedKeys);
 
@@ -175,6 +179,7 @@ public class MainApp extends Application {
     // ОКНО МАСШТАБИРОВАНИЯ
     private void openScaleWindow(Stage mainStage) {
         Stage stage = new Stage();
+        stage.initOwner(primaryStage);
 
         TextField input = new TextField();
         Button apply = new Button("Применить");
@@ -220,6 +225,7 @@ public class MainApp extends Application {
     // ОКНО ФЛАЖКОВ
     private void openCheckBoxWindow() {
         Stage stage = new Stage();
+        stage.initOwner(primaryStage);
 
         checkBoxContainer = new VBox(5);
         checkBoxContainer.setPadding(new Insets(5, 10, 5, 10));
@@ -239,15 +245,14 @@ public class MainApp extends Application {
         stage.setScene(new Scene(scrollPane, 300, 300));
         stage.setTitle("Флажки");
 
-        // очищаем ссылку при закрытии
         stage.setOnCloseRequest(e -> checkBoxContainer = null);
-
         stage.show();
     }
 
     // ОКНО УПРАВЛЕНИЯ
     private void openManageWindow() {
         Stage stage = new Stage();
+        stage.initOwner(primaryStage);
 
         TextField input = new TextField();
         input.setPromptText("Номер");
