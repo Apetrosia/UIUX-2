@@ -278,7 +278,7 @@ public class MainApp extends Application {
             deleteField(number);
         });
 
-        VBox root = new VBox(10, input, addBtn, removeBtn);
+        VBox root = new VBox(10, new Label("Номер поля:"), input, addBtn, removeBtn);
         root.setPadding(new Insets(10));
 
         stage.setScene(new Scene(root, 300, 200));
