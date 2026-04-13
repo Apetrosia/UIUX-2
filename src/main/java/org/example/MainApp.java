@@ -20,6 +20,11 @@ public class MainApp extends Application {
     private final Map<Integer, TextField> fields = new HashMap<>();
     private final Map<Integer, CheckBox> checkBoxes = new HashMap<>();
 
+    double minWidth = 600 * 0.7;
+    double minHeight = 500 * 0.7;
+    double maxWidth = 600 * 1.2;
+    double maxHeight = 500 * 1.2;
+
     @Override
     public void start(Stage primaryStage) {
 
@@ -81,7 +86,7 @@ public class MainApp extends Application {
 
         fields.put(number, field);
 
-        int insertIndex = 0;
+            int insertIndex = 0;
         List<Integer> sortedKeys = new ArrayList<>(fields.keySet());
         Collections.sort(sortedKeys);
 
@@ -132,6 +137,8 @@ public class MainApp extends Application {
 
         CheckBox cb = new CheckBox(field.getText());
 
+        cb.setSelected(field.getFont() != null && field.getFont().getStyle().contains("Bold"));
+
         cb.selectedProperty().addListener((obs, oldVal, newVal) -> {
             field.setFont(newVal
                     ? Font.font("System", javafx.scene.text.FontWeight.BOLD, 12)
@@ -179,9 +186,24 @@ public class MainApp extends Application {
                     log("Некорректное число: " + scale);
                     return;
                 }
-                mainStage.setWidth(mainStage.getWidth() * scale);
-                mainStage.setHeight(mainStage.getHeight() * scale);
-                log("Масштаб изменён: " + scale);
+
+                double oldWidth = mainStage.getWidth();
+                double oldHeight = mainStage.getHeight();
+
+                double newWidth = oldWidth * scale;
+                double newHeight = oldHeight * scale;
+
+                mainStage.setWidth(Math.max(minWidth, Math.min(newWidth, maxWidth)));
+                mainStage.setHeight(Math.max(minHeight, Math.min(newHeight, maxHeight)));
+
+                if (newWidth < minWidth || newHeight < minHeight) {
+                    log("Масштаб изменён на минимальный: " + (int)mainStage.getWidth() + " x " + (int)mainStage.getHeight());
+                }
+                else if (newWidth > maxWidth || newHeight > maxHeight) {
+                    log("Масштаб изменён на максимальный: " + (int) mainStage.getWidth() + " x " + (int) mainStage.getHeight());
+                } else {
+                    log("Масштаб изменён: " + scale);
+                }
             } catch (Exception ex) {
                 showError("Некорректное число");
             }
