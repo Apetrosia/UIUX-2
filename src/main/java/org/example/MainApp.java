@@ -3,6 +3,7 @@ package org.example;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -30,26 +31,23 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
 
-        VBox root = new VBox(10);
-        root.setPadding(new Insets(10));
-
         logArea = new TextArea();
         logArea.setEditable(false);
-        logArea.setPrefHeight(150);
+        logArea.setMaxHeight(Double.MAX_VALUE); // 🔥 Снимаем верхний лимит высоты
 
         fieldsContainer = new VBox(5);
         fieldsContainer.setPadding(new Insets(5, 10, 5, 10));
 
         ScrollPane scrollPane = new ScrollPane(fieldsContainer);
         scrollPane.setFitToWidth(true);
-        scrollPane.setPrefHeight(250);
+        scrollPane.setMaxHeight(Double.MAX_VALUE); // 🔥 Снимаем верхний лимит высоты
 
         for (int i = 1; i <= 6; i++) {
             createField(i, false);
         }
 
         Button scaleBtn = new Button("Масштаб");
-        Button checkBoxBtn = new Button("Флажки");
+        Button checkBoxBtn = new Button("Стиль");
         Button manageBtn = new Button("Управление полями");
 
         scaleBtn.setOnAction(e -> openScaleWindow(primaryStage));
@@ -57,8 +55,18 @@ public class MainApp extends Application {
         manageBtn.setOnAction(e -> openManageWindow());
 
         HBox buttons = new HBox(10, scaleBtn, checkBoxBtn, manageBtn);
+        buttons.setAlignment(Pos.CENTER_LEFT);
 
-        root.getChildren().addAll(buttons, scrollPane, logArea);
+        // 🔥 Горизонтальный контейнер: Слева поля, Справа лог
+        HBox contentBox = new HBox(10, scrollPane, logArea);
+        contentBox.setFillHeight(true); // 🔥 Дети растягиваются на всю высоту HBox
+        HBox.setHgrow(scrollPane, Priority.ALWAYS);
+        HBox.setHgrow(logArea, Priority.ALWAYS);
+
+        // 🔥 Главное окно
+        VBox root = new VBox(10, buttons, contentBox);
+        root.setPadding(new Insets(10));
+        VBox.setVgrow(contentBox, Priority.ALWAYS); // 🔥 contentBox забирает ВСЮ оставшуюся высоту окна
 
         primaryStage.setScene(new Scene(root, 600, 500));
         primaryStage.setTitle("Синхронизация");
@@ -76,7 +84,12 @@ public class MainApp extends Application {
         }
 
         Label label = new Label(String.valueOf(number));
+        label.setPrefWidth(20);
+        label.setMinWidth(20);
+        label.setMaxWidth(20);
+        label.setAlignment(Pos.CENTER_RIGHT);
         TextField field = new TextField(String.valueOf(number));
+        field.setPrefWidth(400);
 
         field.textProperty().addListener((obs, oldVal, newVal) -> {
             if (checkBoxes.containsKey(number)) {
@@ -182,6 +195,8 @@ public class MainApp extends Application {
         stage.initOwner(primaryStage);
 
         TextField input = new TextField();
+        input.setPrefWidth(50);
+
         Button apply = new Button("Применить");
 
         apply.setOnAction(e -> {
@@ -214,10 +229,11 @@ public class MainApp extends Application {
             }
         });
 
-        VBox root = new VBox(10, new Label("Множитель:"), input, apply);
+        HBox root = new HBox(10, new Label("Множитель:"), input, apply);
         root.setPadding(new Insets(10));
+        root.setAlignment(Pos.CENTER);
 
-        stage.setScene(new Scene(root, 300, 150));
+        stage.setScene(new Scene(root, 270, 50));
         stage.setTitle("Масштаб");
         stage.show();
     }
@@ -242,8 +258,8 @@ public class MainApp extends Application {
         ScrollPane scrollPane = new ScrollPane(checkBoxContainer);
         scrollPane.setFitToWidth(true);
 
-        stage.setScene(new Scene(scrollPane, 300, 300));
-        stage.setTitle("Флажки");
+        stage.setScene(new Scene(scrollPane, 300, 210));
+        stage.setTitle("Стиль");
 
         stage.setOnCloseRequest(e -> checkBoxContainer = null);
         stage.show();
@@ -278,10 +294,17 @@ public class MainApp extends Application {
             deleteField(number);
         });
 
-        VBox root = new VBox(10, new Label("Номер поля:"), input, addBtn, removeBtn);
+        HBox fieldNum = new HBox(10, new Label("Номер поля:"), input);
+        HBox buttons = new HBox(10, addBtn, removeBtn);
+
+        fieldNum.setAlignment(Pos.CENTER);
+        buttons.setAlignment(Pos.CENTER);
+
+        VBox root = new VBox(10, fieldNum, buttons);
+        root.setPadding(new Insets(10));
         root.setPadding(new Insets(10));
 
-        stage.setScene(new Scene(root, 300, 200));
+        stage.setScene(new Scene(root, 300, 100));
         stage.setTitle("Управление");
         stage.show();
     }
