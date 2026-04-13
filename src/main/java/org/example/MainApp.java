@@ -96,7 +96,6 @@ public class MainApp extends Application {
             log("Добавлено поле " + number);
         }
 
-        // если окно флажков открыто — добавляем туда чекбокс
         addCheckBox(number);
     }
 
@@ -114,7 +113,6 @@ public class MainApp extends Application {
         fieldsContainer.getChildren().remove(row);
         fields.remove(number);
 
-        // удаляем чекбокс если есть
         if (checkBoxes.containsKey(number)) {
             CheckBox cb = checkBoxes.get(number);
             if (checkBoxContainer != null) {
